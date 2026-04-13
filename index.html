@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Calculadora de Ripas / Rodaforros</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #F5F0E8;
+      --surface:   #FDFAF4;
+      --border:    #D9CFC0;
+      --wood-dark: #5C3D1E;
+      --wood-mid:  #8B5E35;
+      --wood-light:#C49A6C;
+      --accent:    #B84B2A;
+      --text:      #2A1F14;
+      --muted:     #8A7A68;
+      --green:     #3A6B4A;
+      --green-bg:  #EAF2EC;
+      --radius:    14px;
+      --shadow:    0 2px 16px rgba(60,30,0,0.08);
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 40px 20px 80px;
+      background-image:
+        radial-gradient(ellipse 80% 50% at 50% -10%, rgba(196,154,108,0.18) 0%, transparent 70%);
+    }
+
+    /* ---- HEADER ---- */
+    .header {
+      max-width: 560px;
+      margin: 0 auto 36px;
+    }
+    .header-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--wood-light);
+      margin-bottom: 6px;
+    }
+    .header h1 {
+      font-family: 'DM Serif Display', serif;
+      font-size: clamp(28px, 6vw, 40px);
+      font-weight: 400;
+      line-height: 1.15;
+      color: var(--wood-dark);
+    }
+    .header h1 em {
+      font-style: italic;
+      color: var(--wood-mid);
+    }
+    .header p {
+      margin-top: 10px;
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    /* ---- PARAMS CHIP ---- */
+    .params-row {
+      max-width: 560px;
+      margin: 0 auto 28px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .param-chip {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 99px;
+      padding: 5px 14px 5px 10px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .param-chip strong {
+      font-family: 'DM Mono', monospace;
+      font-size: 13px;
+      color: var(--wood-dark);
+    }
+    .param-chip .dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--wood-light);
+      flex-shrink: 0;
+    }
+
+    /* ---- CARD ---- */
+    .card {
+      max-width: 560px;
+      margin: 0 auto;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 28px 24px 24px;
+    }
+
+    /* ---- TABLE HEADER ---- */
+    .col-labels {
+      display: grid;
+      grid-template-columns: 1fr 1fr 28px;
+      gap: 10px;
+      padding: 0 4px 8px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 10px;
+    }
+    .col-labels span {
+      font-size: 11px;
+      font-family: 'DM Mono', monospace;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    /* ---- ROWS ---- */
+    #linhas { display: flex; flex-direction: column; gap: 8px; }
+
+    .linha {
+      display: grid;
+      grid-template-columns: 1fr 1fr 28px;
+      gap: 10px;
+      align-items: center;
+      animation: slideIn 0.18s ease;
+    }
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(-6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .linha input {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 9px 13px;
+      font-family: 'DM Mono', monospace;
+      font-size: 15px;
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+      -moz-appearance: textfield;
+    }
+    .linha input::-webkit-outer-spin-button,
+    .linha input::-webkit-inner-spin-button { -webkit-appearance: none; }
+    .linha input:focus {
+      border-color: var(--wood-mid);
+      box-shadow: 0 0 0 3px rgba(139,94,53,0.12);
+    }
+    .linha input::placeholder { color: var(--border); }
+
+    .btn-remove {
+      width: 28px; height: 28px;
+      border: none;
+      background: none;
+      cursor: pointer;
+      border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--border);
+      font-size: 18px;
+      line-height: 1;
+      transition: color 0.15s, background 0.15s;
+    }
+    .btn-remove:hover { color: var(--accent); background: rgba(184,75,42,0.08); }
+
+    /* ---- ACTIONS ---- */
+    .actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 18px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      flex: 1;
+      min-width: 140px;
+      border: none;
+      border-radius: 10px;
+      padding: 12px 20px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: transform 0.12s, box-shadow 0.12s, background 0.15s;
+      letter-spacing: 0.01em;
+    }
+    .btn:active { transform: scale(0.97); }
+
+    .btn-add {
+      background: var(--bg);
+      border: 1.5px dashed var(--border);
+      color: var(--wood-mid);
+    }
+    .btn-add:hover { border-color: var(--wood-mid); background: #EDE6D9; }
+
+    .btn-calc {
+      background: var(--wood-dark);
+      color: #FFF8EE;
+      box-shadow: 0 3px 12px rgba(92,61,30,0.28);
+    }
+    .btn-calc:hover {
+      background: var(--wood-mid);
+      box-shadow: 0 4px 16px rgba(139,94,53,0.36);
+    }
+
+    /* ---- RESULT ---- */
+    #resultado {
+      max-width: 560px;
+      margin: 20px auto 0;
+      display: none;
+    }
+    #resultado.visible { display: block; animation: fadeUp 0.25s ease; }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .result-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .result-header {
+      background: var(--wood-dark);
+      padding: 18px 24px;
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+    }
+    .result-header .label {
+      font-family: 'DM Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: rgba(255,248,238,0.55);
+    }
+    .result-header .total {
+      font-family: 'DM Serif Display', serif;
+      font-size: 32px;
+      color: #FFF8EE;
+      line-height: 1;
+    }
+    .result-header .unit {
+      font-size: 13px;
+      color: rgba(255,248,238,0.65);
+    }
+
+    .result-body { padding: 16px 24px 20px; }
+    .result-body .breakdown-title {
+      font-size: 11px;
+      font-family: 'DM Mono', monospace;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 12px;
+    }
+
+    .breakdown-list { display: flex; flex-direction: column; gap: 6px; }
+
+    .breakdown-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--bg);
+      border-radius: 8px;
+      padding: 8px 14px;
+      font-size: 13.5px;
+    }
+    .breakdown-item .info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--muted);
+    }
+    .breakdown-item .info .mm {
+      font-family: 'DM Mono', monospace;
+      font-size: 14px;
+      color: var(--text);
+    }
+    .breakdown-item .info .x {
+      font-size: 12px;
+      color: var(--border);
+    }
+    .breakdown-item .barras {
+      font-family: 'DM Mono', monospace;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--wood-dark);
+      background: rgba(92,61,30,0.08);
+      border-radius: 6px;
+      padding: 2px 10px;
+    }
+
+    /* ---- FOOTER ---- */
+    .footer {
+      max-width: 560px;
+      margin: 28px auto 0;
+      font-size: 12px;
+      color: var(--border);
+      text-align: center;
+      font-family: 'DM Mono', monospace;
+    }
+  </style>
+</head>
+<body>
+
+  <header class="header">
+    <div class="header-label">By Arabi Planejados</div>
+    <h1>Calculadora de<br><em>Ripas &amp; Rodaforros</em></h1>
+    <p>Informe os comprimentos e quantidades. O cálculo considera a perda de corte automaticamente.</p>
+  </header>
+
+  <div class="params-row">
+    <div class="param-chip">
+      <span class="dot"></span>
+      Barra: <strong>2700 mm</strong>
+    </div>
+    <div class="param-chip">
+      <span class="dot"></span>
+      Perda por corte: <strong>5 mm</strong>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="col-labels">
+      <span>Comprimento (mm)</span>
+      <span>Quantidade</span>
+      <span></span>
+    </div>
+
+    <div id="linhas"></div>
+
+    <div class="actions">
+      <button class="btn btn-add" onclick="adicionarLinha()">+ Adicionar Medida</button>
+      <button class="btn btn-calc" onclick="calcular()">Calcular</button>
+    </div>
+  </div>
+
+  <div id="resultado">
+    <div class="result-card">
+      <div class="result-header">
+        <span class="label">Total de barras</span>
+        <span class="total" id="totalBarras">—</span>
+        <span class="unit">barras</span>
+      </div>
+      <div class="result-body">
+        <div class="breakdown-title">Detalhamento por medida</div>
+        <div class="breakdown-list" id="breakdown"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">barra 2700 mm · perda 5 mm · cálculo por linha, sem otimização de mix</div>
+
+  <script>
+    const BARRA = 2700;
+    const PERDA = 5;
+    let contadorId = 0;
+
+    function adicionarLinha() {
+      const id = ++contadorId;
+      const div = document.createElement('div');
+      div.className = 'linha';
+      div.id = 'linha-' + id;
+      div.innerHTML = `
+        <input type="number" placeholder="ex: 1200" min="1" max="${BARRA}" id="comp-${id}" />
+        <input type="number" placeholder="ex: 12" min="1" id="qtd-${id}" />
+        <button class="btn-remove" onclick="removerLinha(${id})" title="Remover">×</button>
+      `;
+      document.getElementById('linhas').appendChild(div);
+    }
+
+    function removerLinha(id) {
+      const el = document.getElementById('linha-' + id);
+      if (el) el.remove();
+    }
+
+    function calcular() {
+      const linhas = document.querySelectorAll('.linha');
+      let totalBarras = 0;
+      const detalhes = [];
+
+      linhas.forEach(linha => {
+        const id = linha.id.replace('linha-', '');
+        const compEl = document.getElementById('comp-' + id);
+        const qtdEl  = document.getElementById('qtd-' + id);
+
+        const comp = parseFloat(compEl?.value);
+        const qtd  = parseInt(qtdEl?.value);
+
+        if (!comp || !qtd || comp <= 0 || qtd <= 0) return;
+
+        const porBarra = Math.floor((BARRA + PERDA) / (comp + PERDA));
+        if (porBarra <= 0) return;
+
+        const barras = Math.ceil(qtd / porBarra);
+        totalBarras += barras;
+
+        detalhes.push({ comp, qtd, porBarra, barras });
+      });
+
+      // resultado
+      const resultDiv  = document.getElementById('resultado');
+      const totalEl    = document.getElementById('totalBarras');
+      const breakdownEl = document.getElementById('breakdown');
+
+      totalEl.textContent = totalBarras;
+      breakdownEl.innerHTML = '';
+
+      detalhes.forEach(({ comp, qtd, porBarra, barras }) => {
+        const item = document.createElement('div');
+        item.className = 'breakdown-item';
+        item.innerHTML = `
+          <div class="info">
+            <span class="mm">${comp} mm</span>
+            <span class="x">×</span>
+            <span>${qtd} pç · ${porBarra} pç/barra</span>
+          </div>
+          <span class="barras">${barras} barra${barras !== 1 ? 's' : ''}</span>
+        `;
+        breakdownEl.appendChild(item);
+      });
+
+      resultDiv.classList.add('visible');
+      resultDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    // Inicializar com 1 linha
+    adicionarLinha();
+  </script>
+</body>
+</html>
